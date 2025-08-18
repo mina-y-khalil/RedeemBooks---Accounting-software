@@ -29,48 +29,85 @@ const removePayment = (paymentId) => ({
 
 // Thunks
 export const thunkGetPayments = (companyId) => async (dispatch) => {
-  const res = await csrfFetch(`/api/companies/${companyId}/payments`);
-  if (res.ok) {
-    const data = await res.json(); // { payments: [...] }
-    dispatch(loadPayments(data.payments));
+  try {
+    const res = await csrfFetch(`/api/companies/${companyId}/payments`);
+    if (res.ok) {
+      const data = await res.json(); // { payments: [...] }
+      dispatch(loadPayments(data.payments));
+      return data;
+    }
+  } catch (err) {
+    let data;
+    try {
+      data = await err.json();
+    } catch (e) {
+      data = null;
+    }
+    return { errors: data?.errors || { server: "Failed to load payments." } };
   }
 };
 
 export const thunkCreatePayment = (companyId, formData) => async (dispatch) => {
-  const res = await csrfFetch(`/api/companies/${companyId}/payments`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(formData),
-  });
-
-  if (res.ok) {
-    const data = await res.json();
-    dispatch(addPayment(data));
-    return data;
+  try {
+    const res = await csrfFetch(`/api/companies/${companyId}/payments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+    const data = await res.json(); // { payment: {...} }
+    const payment = data.payment ?? data;
+    dispatch(addPayment(payment));
+    return { payment };
+  } catch (err) {
+    let data;
+    try {
+      data = await err.json();
+    } catch (e) {
+      data = null;
+    }
+    return { errors: data?.errors || { server: "Failed to create payment." } };
   }
 };
 
 export const thunkUpdatePayment = (paymentId, formData) => async (dispatch) => {
-  const res = await csrfFetch(`/api/payments/${paymentId}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(formData),
-  });
-
-  if (res.ok) {
-    const data = await res.json();
-    dispatch(updatePayment(data));
-    return data;
+  try {
+    const res = await csrfFetch(`/api/payments/${paymentId}`, {
+      method: "PUT", // use PUT unless your API specifies PATCH
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+    const data = await res.json(); // { payment: {...} }
+    const payment = data.payment ?? data;
+    dispatch(updatePayment(payment));
+    return { payment };
+  } catch (err) {
+    let data;
+    try {
+      data = await err.json();
+    } catch (e) {
+      data = null;
+    }
+    return { errors: data?.errors || { server: "Failed to update payment." } };
   }
 };
 
 export const thunkDeletePayment = (paymentId) => async (dispatch) => {
-  const res = await csrfFetch(`/api/payments/${paymentId}`, {
-    method: "DELETE",
-  });
-
-  if (res.ok) {
-    dispatch(removePayment(paymentId));
+  try {
+    const res = await csrfFetch(`/api/payments/${paymentId}`, {
+      method: "DELETE",
+    });
+    if (res.ok) {
+      dispatch(removePayment(paymentId));
+      return { ok: true };
+    }
+  } catch (err) {
+    let data;
+    try {
+      data = await err.json();
+    } catch (e) {
+      data = null;
+    }
+    return { errors: data?.errors || { server: "Failed to delete payment." } };
   }
 };
 

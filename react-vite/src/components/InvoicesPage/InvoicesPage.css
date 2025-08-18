@@ -35,5 +35,5 @@
 .pill--pending { background:#FFE8B2; color:#6b4c00; }   /* light orange */
 .pill--approved { background:#CDEECD; color:#0f5b28; }  /* light green */
 .pill--declined { background:#F8C7C7; color:#7a0b0b; }  /* light red */
-
+.pill--paid { background:#000000; color:#ffffff; }
 .invoices-empty { padding:16px; color:#555; }

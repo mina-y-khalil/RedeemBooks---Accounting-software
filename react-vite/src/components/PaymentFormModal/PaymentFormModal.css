@@ -1,0 +1,58 @@
+.payment-form-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 1000;
+}
+
+.payment-form {
+  width: 640px;
+  background:#E0E0E0;
+  border: 1px solid #E0E0E0;
+  border-radius: 8px;
+  padding: 28px;
+}
+
+.payment-form h2 {
+  text-align:center;
+  margin-bottom:16px;
+  font-size:28px;
+  color:#1E7A46;
+}
+
+.payment-form label {
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  margin-bottom:14px;
+  font-weight:700;
+  color:#333;
+}
+
+.payment-form input {
+  padding:10px;
+  border:1px solid #CCC;
+  border-radius:6px;
+  background:#fff;
+  font-size:14px;
+}
+.payment-form input:focus { border-color:#1E7A46; outline:none; }
+
+.btn-save {
+  width:100%;
+  padding:12px;
+  background:#1E7A46;
+  color:#fff;
+  border:1px solid #000;
+  border-radius:18px;
+  font-weight:700;
+  font-size:16px;
+  cursor:pointer;
+}
+
+.error { color:#E53935; font-size:13px; margin:4px 0 0; }
+.top-error { margin-bottom:8px; }

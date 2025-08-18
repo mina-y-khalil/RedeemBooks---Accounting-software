@@ -1,0 +1,58 @@
+.payments-page { padding: 28px 32px; }
+
+.payments-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+.payments-header h2 { color:#1E7A46; font-size:28px; margin:0; }
+
+.card {
+  background:#fff;
+  border-radius:12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,.06);
+  padding: 0;
+}
+
+.payments-thead,
+.payments-row {
+  display: grid;
+  grid-template-columns: 1.2fr 1.6fr 1.2fr 280px;
+  gap: 16px;
+  align-items: center;
+}
+.payments-thead {
+  font-weight: 700;
+  color:#1E7A46;
+  padding: 16px 20px;
+  border-bottom: 1px solid #ececec;
+}
+.payments-tbody { padding: 8px 8px 12px; }
+
+.payments-row {
+  padding: 12px;
+  border-radius: 10px;
+}
+.payments-row:nth-child(odd) { background:#f9faf9; }
+
+.row-actions {
+  display:flex;
+  gap:10px;
+  /* justify-content:flex-start; */
+}
+
+/* Buttons (match app palette) */
+.btn { border:none; border-radius:18px; font-weight:700; padding:10px 16px; cursor:pointer; }
+.btn-primary { background:#1E7A46; color:#fff; border:1px solid #000; }
+.btn-dark { background:#1E7A46; color:#fff; }
+.btn-danger { background:#E53935; color:#fff; }
+
+.actions-col { text-align:right; }
+
+.payments-empty {
+  padding: 20px;
+  text-align:center;
+  color:#666;
+}
+
