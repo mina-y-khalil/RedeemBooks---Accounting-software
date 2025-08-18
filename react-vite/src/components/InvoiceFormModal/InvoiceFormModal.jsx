@@ -21,17 +21,14 @@ export default function InvoiceFormModal({ companyId, invoice }) {
 
     const vendorsById = useSelector((s) => s.vendors || {});
     const categoriesById = useSelector((s) => s.categories || {});
+    const invoicesById = useSelector((s) => s.invoices || {});
     const vendors = Object.values(vendorsById);
     const categories = Object.values(categoriesById);
 
-    const [invoiceNumber, setInvoiceNumber] = useState(
-        invoice?.invoice_number || ""
-    );
+    const [invoiceNumber, setInvoiceNumber] = useState(invoice?.invoice_number || "");
     const [vendorId, setVendorId] = useState(invoice?.vendor_id || "");
     const [categoryId, setCategoryId] = useState(invoice?.category_id || "");
-    const [amount, setAmount] = useState(
-        invoice?.amount === 0 ? 0 : invoice?.amount ?? ""
-    );
+    const [amount, setAmount] = useState(invoice?.amount === 0 ? 0 : invoice?.amount ?? "");
     const [invoiceDate, setInvoiceDate] = useState(invoice?.invoice_date || "");
     const [voucherDate, setVoucherDate] = useState(invoice?.voucher_date || "");
     const [status, setStatus] = useState(invoice?.status || "Pending approval");
@@ -56,14 +53,13 @@ export default function InvoiceFormModal({ companyId, invoice }) {
         if (companyId) {
             dispatch(thunkGetVendors(Number(companyId)));
             dispatch(thunkGetCategories(Number(companyId)));
+            dispatch(thunkGetInvoices(Number(companyId)));
         }
     }, [dispatch, companyId]);
 
     useEffect(() => {
         function handleMouseDown(e) {
-            if (boxRef.current && !boxRef.current.contains(e.target)) {
-                closeModal();
-            }
+            if (boxRef.current && !boxRef.current.contains(e.target)) closeModal();
         }
         document.addEventListener("mousedown", handleMouseDown);
         return () => document.removeEventListener("mousedown", handleMouseDown);
@@ -73,38 +69,32 @@ export default function InvoiceFormModal({ companyId, invoice }) {
         const val = e.target.value;
         setVendorText(val);
         const match = vendors.find((v) => `${v.name} (#${v.id})` === val);
-        if (match) {
-            setVendorId(match.id);
-        } else {
-            setVendorId("");
-        }
+        setVendorId(match ? match.id : "");
     }
 
     function handleCategoryTextChange(e) {
         const val = e.target.value;
         setCategoryText(val);
         const match = categories.find((c) => `${c.name} (#${c.id})` === val);
-        if (match) {
-            setCategoryId(match.id);
-        } else {
-            setCategoryId("");
-        }
+        setCategoryId(match ? match.id : "");
     }
 
     async function handleSubmit(e) {
         e.preventDefault();
         setErrors({});
 
-        if (!invoiceNumber.trim()) {
-            setErrors({ invoice_number: "Invoice number is required." });
-            return;
-        }
-        if (!vendorId) {
-            setErrors({ vendor_id: "Vendor is required." });
-            return;
-        }
-        if (!categoryId) {
-            setErrors({ category_id: "Category is required." });
+        const num = invoiceNumber.trim();
+        if (!num) return setErrors({ invoice_number: "Invoice number is required." });
+        if (!vendorId) return setErrors({ vendor_id: "Vendor is required." });
+        if (!categoryId) return setErrors({ category_id: "Category is required." });
+
+        const duplicate = Object.values(invoicesById).some(
+            (i) =>
+                String(i.invoice_number).trim().toLowerCase() === num.toLowerCase() &&
+                (!invoice || i.id !== invoice.id)
+        );
+        if (duplicate) {
+            setErrors({ invoice_number: "Invoice number already exists." });
             return;
         }
 
@@ -117,14 +107,12 @@ export default function InvoiceFormModal({ companyId, invoice }) {
                 ? terms
                 : parseInt(String(terms).match(/-?\d+/)?.[0] || "0", 10)
         );
-        if (!Number.isNaN(days)) {
-            due.setDate(base.getDate() + days);
-        }
+        if (!Number.isNaN(days)) due.setDate(base.getDate() + days);
         const due_date = due.toISOString().split("T")[0];
 
         setSubmitting(true);
         const payload = {
-            invoice_number: invoiceNumber.trim(),
+            invoice_number: num,
             vendor_id: Number(vendorId),
             category_id: Number(categoryId),
             amount: amount === "" ? null : Number(amount),
@@ -136,23 +124,28 @@ export default function InvoiceFormModal({ companyId, invoice }) {
             description: description || "",
         };
 
-        let resp;
-        if (invoice) {
-            resp = await dispatch(thunkUpdateInvoice(invoice.id, payload));
-        } else {
-            resp = await dispatch(thunkCreateInvoice(Number(companyId), payload));
-        }
-        setSubmitting(false);
+        try {
+            let resp;
+            if (invoice) {
+                resp = await dispatch(thunkUpdateInvoice(invoice.id, payload));
+            } else {
+                resp = await dispatch(thunkCreateInvoice(Number(companyId), payload));
+            }
+            setSubmitting(false);
 
-        if (resp?.errors) {
-            setErrors(resp.errors);
-            return;
-        }
+            if (resp?.errors) {
+                setErrors(resp.errors);
+                return;
+            }
 
-        await dispatch(thunkGetInvoices(Number(companyId)));
-        await dispatch(thunkGetVendors(Number(companyId)));
-        closeModal();
-        navigate("/invoices");
+            await dispatch(thunkGetInvoices(Number(companyId)));
+            await dispatch(thunkGetVendors(Number(companyId)));
+            closeModal();
+            navigate("/invoices");
+        } catch (err) {
+            setSubmitting(false);
+            setErrors({ server: "Failed to save invoice." });
+        }
     }
 
     return (
@@ -171,9 +164,7 @@ export default function InvoiceFormModal({ companyId, invoice }) {
                         onChange={(e) => setInvoiceNumber(e.target.value)}
                         required
                     />
-                    {errors.invoice_number && (
-                        <p className="error">{errors.invoice_number}</p>
-                    )}
+                    {errors.invoice_number && <p className="error">{errors.invoice_number}</p>}
                 </label>
 
                 <label>

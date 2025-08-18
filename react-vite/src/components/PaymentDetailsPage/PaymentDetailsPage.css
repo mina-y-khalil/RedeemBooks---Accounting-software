@@ -1,0 +1,27 @@
+.payment-details { padding: 28px 32px; }
+
+.details-header {
+  display:flex;
+  justify-content: space-between;
+  align-items:center;
+  margin-bottom: 18px;
+}
+.details-header h2 { color:#1E7A46; font-size:28px; margin:0; }
+
+.header-actions { display:flex; gap:10px; }
+.btn { border:none; border-radius:18px; font-weight:700; padding:10px 16px; cursor:pointer; }
+.btn-primary { background:#1E7A46; color:#fff; border:1px solid #000; }
+.btn-danger { background:#E53935; color:#fff; }
+
+.details-grid {
+  display:grid;
+  grid-template-columns: 240px 1fr;
+  row-gap: 12px;
+  column-gap: 16px;
+  background:#fff;
+  border-radius:12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,.06);
+  padding: 20px;
+}
+.label { color:#1E7A46; font-weight:700; }
+.value { color:#222; }

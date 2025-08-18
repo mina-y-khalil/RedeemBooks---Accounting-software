@@ -4,13 +4,14 @@ import { useNavigate, useParams, useOutletContext } from "react-router-dom";
 import { useModal } from "../../context/Modal";
 import { thunkGetInvoices, thunkDeleteInvoice } from "../../redux/invoices";
 import { thunkGetVendors } from "../../redux/vendors";
+import { thunkGetPayments } from "../../redux/payments";
 import InvoiceFormModal from "../InvoiceFormModal";
 import ConfirmModal from "../ConfirmModal/ConfirmModal";
 import "./InvoiceDetailsPage.css";
 
 function StatusPill({ status }) {
     let cls = "pill--pending";
-    if (status === "Approved") cls = "pill--approved";
+    if (status === "Approved" || status === "Paid") cls = "pill--paid";
     if (status === "Declined" || status === "Denied") cls = "pill--declined";
     return <span className={`status-pill ${cls}`}>{status || "Pending approval"}</span>;
 }
@@ -48,10 +49,16 @@ export default function InvoiceDetailsPage() {
     const vendor = useSelector((state) =>
         invoice ? state.vendors?.[invoice.vendor_id] : null
     );
+    const payments = useSelector((state) => state.payments || {});
+    const paid = Object.values(payments).reduce(
+        (sum, p) => (p.invoice_id === Number(invoiceId) ? sum + Number(p.amount || 0) : sum),
+        0
+    );
 
     useEffect(() => {
         dispatch(thunkGetInvoices(companyId));
         dispatch(thunkGetVendors(companyId));
+        dispatch(thunkGetPayments(companyId));
     }, [dispatch, companyId]);
 
     if (!invoice) {
@@ -101,6 +108,11 @@ export default function InvoiceDetailsPage() {
         }
     }
 
+    const computedStatus =
+        invoice.status === "Paid" || paid >= Number(invoice.amount || 0)
+            ? "Paid"
+            : invoice.status || "Pending approval";
+
     return (
         <div className="invoice-details">
             <div className="details-header">
@@ -136,7 +148,7 @@ export default function InvoiceDetailsPage() {
 
                 <div className="label">Status</div>
                 <div className="value">
-                    <StatusPill status={invoice.status} />
+                    <StatusPill status={computedStatus} />
                 </div>
 
                 <div className="label">View invoice</div>

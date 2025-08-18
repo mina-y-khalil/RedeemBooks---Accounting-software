@@ -4,6 +4,7 @@ import { useNavigate, useOutletContext } from "react-router-dom";
 import { useModal } from "../../context/Modal";
 import { thunkGetVendors, thunkDeleteVendor } from "../../redux/vendors";
 import { thunkGetInvoices } from "../../redux/invoices";
+import { thunkGetPayments } from "../../redux/payments";
 import VendorFormModal from "../VendorFormModal/VendorFormModal";
 import ConfirmModal from "../ConfirmModal/ConfirmModal";
 import "./VendorsPage.css";
@@ -20,26 +21,35 @@ function VendorsPage() {
     const invoicesById = useSelector((s) => s.invoices || {});
     const invoices = useMemo(() => Object.values(invoicesById), [invoicesById]);
 
+    const payments = useSelector((s) => s.payments || {});
+    const paymentsArr = useMemo(() => Object.values(payments), [payments]);
+
     useEffect(() => {
         if (companyId) {
             dispatch(thunkGetVendors(Number(companyId)));
             dispatch(thunkGetInvoices(Number(companyId)));
+            dispatch(thunkGetPayments(Number(companyId)));
         }
     }, [dispatch, companyId]);
 
     const balancesByVendor = useMemo(() => {
-        const map = {};
+        const totals = {};
         for (const inv of invoices) {
             if (!inv?.vendor_id) continue;
             const include =
                 inv.status === "Pending approval" ||
                 inv.status === "Approved" ||
+                inv.status === "Paid" ||
                 !inv.status;
             if (!include) continue;
-            map[inv.vendor_id] = (map[inv.vendor_id] || 0) + Number(inv.amount || 0);
+            totals[inv.vendor_id] = (totals[inv.vendor_id] || 0) + Number(inv.amount || 0);
         }
-        return map;
-    }, [invoices]);
+        for (const p of paymentsArr) {
+            if (!p?.vendor_id) continue;
+            totals[p.vendor_id] = (totals[p.vendor_id] || 0) - Number(p.amount || 0);
+        }
+        return totals;
+    }, [invoices, paymentsArr]);
 
     const openCreate = () => setModalContent(<VendorFormModal companyId={companyId} />);
     const openEdit = (vendor) =>
@@ -88,20 +98,28 @@ function VendorsPage() {
                                         : "-"}
                                 </div>
                                 <div className="row-actions">
-                                    <button className="btn btn-view" onClick={() => navigate(`/vendors/${v.id}`)}>
+                                    <button
+                                        className="btn btn-view"
+                                        onClick={() => navigate(`/vendors/${v.id}`)}
+                                    >
                                         View
                                     </button>
                                     <button className="btn btn-edit" onClick={() => openEdit(v)}>
                                         Edit
                                     </button>
-                                    <button className="btn btn-danger" onClick={() => openDelete(v.id)}>
+                                    <button
+                                        className="btn btn-danger"
+                                        onClick={() => openDelete(v.id)}
+                                    >
                                         Delete
                                     </button>
                                 </div>
                             </div>
                         );
                     })}
-                    {vendors.length === 0 && <div className="vendors-empty">No vendors yet.</div>}
+                    {vendors.length === 0 && (
+                        <div className="vendors-empty">No vendors yet.</div>
+                    )}
                 </div>
             </div>
         </div>

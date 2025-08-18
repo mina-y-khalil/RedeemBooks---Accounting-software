@@ -68,7 +68,7 @@ function Navigation() {
                 <NavLink to="/invoices" className="nav-button yellow">
                   Invoices
                 </NavLink>
-                <NavLink to="/" className="nav-button yellow">
+                <NavLink to="/payments" className="nav-button yellow">
                   Payments
                 </NavLink>
               </div>
